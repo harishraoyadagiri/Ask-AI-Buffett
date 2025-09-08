@@ -1,10 +1,49 @@
 Sebastian Raschka, PhD
-Building A GPT-Style LLM Classifier From Scratch
-https://substackcdn.com/image/fetch/$s_!mmsV!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fc52e5b0c-836c-4ae4-9b09-02e364004195_1600x858.jpeg
+Building LLMs from the Ground Up: A 3-hour Coding Workshop
+https://substack-post-media.s3.amazonaws.com/public/images/367b547c-9d22-4a3d-b466-1d56ccc6b055_1844x1224.png
 
 Content : 
-In this article, I want to show you how to transform pretrained large language models (LLMs) into strong text classifiers. 
-But why focus on classification? First, finetuning a pretrained model for classification offers a gentle yet effective introduction to model finetuning. Second, many real-world and business challenges revolve around text classification: spam detection, sentiment analysis, customer feedback categorization, topic labeling, and more.
+If you’d like to spend a few hours this weekend to dive into Large Language Models (LLMs) and understand how they work, I've prepared a 3-hour coding workshop presentation on implementing, training, and using LLMs.
+
+
+
+Below, you'll find a table of contents to get an idea of what this video covers (the video itself has clickable chapter marks, allowing you to jump directly to topics of interest):
+0:00 – Workshop overview
+2:17 – Part 1: Intro to LLMs
+9:14 – Workshop materials
+10:48 – Part 2: Understanding LLM input data
+23:25 – A simple tokenizer class
+41:03 – Part 3: Coding an LLM architecture
+45:01 – GPT-2 and Llama 2
+1:07:11 – Part 4: Pretraining
+1:29:37 – Part 5.1: Loading pretrained weights
+1:45:12 – Part 5.2: Pretrained weights via LitGPT
+1:53:09 – Part 6.1: Instruction finetuning
+2:08:21 – Part 6.2: Instruction finetuning via LitGPT
+02:26:45 – Part 6.3: Benchmark evaluation
+02:36:55 – Part 6.4: Evaluating conversational performance
+02:42:40 – Conclusion
+
+It's a slight departure from my usual text-based content, but the last time I did this a few months ago, it was so well-received that I thought it might be nice to do another one!
+Happy viewing!
+
+References
+
+Build an LLM from Scratch book
+
+Build an LLM from Scratch GitHub repository
+
+GitHub repository with workshop code
+
+Lightning Studio for this workshop
+
+LitGPT GitHub repository
+
+
+
+
+
+This magazine is a personal passion project. For those who wish to support me, please consider purchasing a copy of my Build a Large Language Model (From Scratch) book. (I am confident that you'll get lots out of this book as it explains how LLMs work in a level of detail that is not found anywhere else.)
 
 
 
@@ -19,67 +58,11 @@ But why focus on classification? First, finetuning a pretrained model for classi
 
 
 
-Turning a GPT model into a text classifier
-
-What You’ll Learn in This Article
-To celebrate the book’s release, I’m sharing an excerpt from one of the chapters that walks you through how to finetune a pretrained LLM as a spam classifier. 
-Important Note
-The chapter on classification finetuning is 35 pages long—too long for a single article. So, in this post, I’ll focus on a ~10-page subset that introduces the context and core concepts behind classification finetuning.
-Additionally, I’ll share insights from some extra experiments that aren’t included in the book and address common questions readers might have. (Please note that the excerpt below is based on my personal draft before Manning’s professional text editing and final figure design.)
-The full code for this excerpt can be found here on GitHub.
-In addition, I'll also answer 7 questions you might have regarding training LLM classifiers:
-1) Do we need to train all layers?
-2) Why finetuning the last token, not the first token?
-3) How does BERT compare to GPT performance-wise?
-4) Should we disable the causal mask?
-5) What impact does increasing the model size have?
-6) What improvements can we expect from LoRA?
-7) Padding or no padding?
-Happy reading!
-Different categories of finetuning
-The most common ways to finetune language models are instruction finetuning and classification finetuning. Instruction finetuning involves training a language model on a set of tasks using specific instructions to improve its ability to understand and execute tasks described in natural language prompts, as illustrated in Figure 1 below.
+Build a Large Language Model (From Scratch) now available on Amazon
+If you read the book and have a few minutes to spare, I'd really appreciate a brief review. It helps us authors a lot!
+Alternatively, I also recently enabled the paid subscription option on Substack to support this magazine directly.
 
 
+Ahead of AI is a reader-supported publication. To receive new posts and support my work, consider becoming a free or paid subscriber.
 
-
-
-
-
-
-
-
-
-
-
-
-Figure 1: Illustration of two different instruction finetuning scenarios. At the top, the model is tasked with determining whether a given text is spam. At the bottom, the model is given an instruction on how to translate an English sentence into German.
-The next chapter will discuss instruction finetuning, as illustrated in Figure 1 above. Meanwhile, this chapter is centered on classification finetuning, a concept you might already be acquainted with if you have a background in machine learning.
-In classification finetuning, the model is trained to recognize a specific set of class labels, such as "spam" and "not spam." Examples of classification tasks extend beyond large language models and email filtering; they include identifying different species of plants from images, categorizing news articles into topics like sports, politics, or technology, and distinguishing between benign and malignant tumors in medical imaging.
-The key point is that a classification-finetuned model is restricted to predicting classes it has encountered during its training—for instance, it can determine whether something is "spam" or "not spam," as illustrated in Figure 2 below, but it can't say anything else about the input text. 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Figure 2: Illustration of a text classification scenario using an LLM. A model finetuned for spam classification does not require additional instructions alongside the input. However, in contrast to an instruction-finetuned model, it can only respond with "spam" and "not spam."
-In contrast to the classification-finetuned model depicted in Figure 2, an instruction-finetuned model typically has the capability to undertake a broader range of tasks. We can view a classification-finetuned model as highly specialized, and generally, it is easier to develop a specialized model than a generalist model that works well across various tasks.                                                
-
-Choosing the right approach
-Instruction finetuning improves a model's ability to understand and generate responses based on specific user instructions. Instruction finetuning is best suited for models that need to handle a variety of tasks based on complex user instructions, improving flexibility and interaction quality. Classification finetuning, on the other hand, is ideal for projects requiring precise categorization of data into predefined classes, such as sentiment analysis or spam detection. 
-
-While instruction finetuning is more versatile, it demands larger datasets and greater computational resources to develop models proficient in various tasks. In contrast, classification finetuning requires less data and compute power, but its use is confined to the specific classes on which the model has been trained.
-
-      
-          
-              Read more
-
-2024-09-21T12:07:44.000Z
+2024-08-31T10:39:35.000Z
